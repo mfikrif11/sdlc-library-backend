@@ -23,7 +23,7 @@ const authController = {
                 })
             }
 
-            const { username, email, password, role } = req.body
+            const { NIM, username, email, password } = req.body
 
             const findUserByUsernameOrEmail = await User.findOne({
                 where: {
@@ -41,16 +41,14 @@ const authController = {
             }
 
             const hashedPassword = bcrypt.hashSync(password, 5)
-            const NIM = Date.now()
 
             console.log(NIM)
 
             const newUser = await User.create({
                 username,
-                NIM: NIM,
+                NIM,
                 email,
                 password: hashedPassword,
-                role,
             })
 
             const verification_token = createVerificationToken({
