@@ -2,7 +2,7 @@ const db = require("../models")
 
 const Book = db.Book
 
-const authController = {
+const bookController = {
     getAllBooks: async (req, res) => {
         try {
             const getAll = await Book.findAll({})
@@ -20,4 +20,4 @@ const authController = {
     },
 }
 
-module.exports = authController
+module.exports = bookController
