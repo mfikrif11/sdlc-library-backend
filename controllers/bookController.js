@@ -5,7 +5,7 @@ const Book = db.Book
 const bookController = {
     getAllBooks: async (req, res) => {
         try {
-            const getAll = await Book.findAll({})
+            const getAll = await Book.findAll()
 
             return res.status(200).json({
                 message: "Get all books",
