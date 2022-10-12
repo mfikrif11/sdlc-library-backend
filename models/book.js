@@ -22,16 +22,16 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            description: {
-                type: DataTypes.STRING,
+            publish_date: {
+                type: DataTypes.INTEGER,
                 allowNull: false,
             },
-            publish_date: {
-                type: DataTypes.DATE,
+            description: {
+                type: DataTypes.TEXT("long"),
                 allowNull: false,
             },
             genre: {
-                type: DataTypes.DATE,
+                type: DataTypes.STRING,
                 allowNull: false,
             },
             image_url: {

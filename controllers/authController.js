@@ -141,14 +141,6 @@ const authController = {
                 message: "Renewed user token",
                 data: findUserById,
                 token: renewedToken,
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error",
-            })
-        }
-    },
     verifyUser: async (req, res) => {
         try {
             const { verification_token } = req.query
@@ -217,3 +209,5 @@ const authController = {
 module.exports = {
     authController
 }
+
+

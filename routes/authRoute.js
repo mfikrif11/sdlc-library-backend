@@ -33,3 +33,4 @@ router.get("/verification", authController.verifyUser)
 router.post("/verification", verifyToken, authController.resendVerification)
 
 module.exports = router
+
