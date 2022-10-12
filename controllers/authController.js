@@ -23,7 +23,7 @@ const authController = {
                 })
             }
 
-            const { username, nim, email, password, role } = req.body
+            const { username, email, password, role } = req.body
 
             const findUserByUsernameOrEmail = await User.findOne({
                 where: {
@@ -41,10 +41,13 @@ const authController = {
             }
 
             const hashedPassword = bcrypt.hashSync(password, 5)
+            const NIM = Date.now()
+
+            console.log(NIM)
 
             const newUser = await User.create({
                 username,
-                nim,
+                NIM: NIM,
                 email,
                 password: hashedPassword,
                 role,
@@ -83,25 +86,22 @@ const authController = {
     },
     loginUser: async (req, res) => {
         try {
-            const { usernameOrEmail, password } = req.body
+            const { NIM, password } = req.body
 
-            const findUserByUsernameOrEmail = await User.findOne({
+            const findUserByNIM = await User.findOne({
                 where: {
-                    [Op.or]: {
-                        username: usernameOrEmail,
-                        email: usernameOrEmail,
-                    },
+                    NIM: NIM,
                 },
             })
 
-            if (!findUserByUsernameOrEmail) {
+            if (!findUserByNIM) {
                 return res.status(400).json({
-                    message: "User or email not found"
+                    message: "NIM not found"
                 })
             }
 
             const passwordValid = bcrypt.compareSync(
-                password, findUserByUsernameOrEmail.password
+                password, findUserByNIM.password
             )
 
             if (!passwordValid) {
@@ -110,15 +110,15 @@ const authController = {
                 })
             }
 
-            delete findUserByUsernameOrEmail.dataValues.password
+            delete findUserByNIM.dataValues.password
 
             const token = signToken({
-                id: findUserByUsernameOrEmail.id,
+                id: findUserByNIM.id,
             })
 
             return res.status(201).json({
                 message: "Login user",
-                data: findUserByUsernameOrEmail,
+                data: findUserByNIM,
                 token: token,
             })
 
@@ -141,15 +141,7 @@ const authController = {
                 message: "Renewed user token",
                 data: findUserById,
                 token: renewedToken,
-
             })
-
-            return res.status(201).json({
-                message: "Login user",
-                data: findUserByUsernameOrEmail,
-                token: token,
-            })
-
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -226,4 +218,5 @@ const authController = {
 module.exports = {
     authController
 }
+
 

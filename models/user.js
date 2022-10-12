@@ -14,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
     }
     User.init(
         {
-            nim: {
-                type: DataTypes.INTEGER,
+            NIM: {
+                type: DataTypes.STRING,
                 allowNull: false,
             },
             username: {
