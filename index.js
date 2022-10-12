@@ -4,6 +4,7 @@ const db = require("./models")
 const cors = require("cors")
 const fs = require("fs")
 const handlebars = require("handlebars")
+const authRoute = require("./routes/authRoute")
 
 dotenv.config()
 
@@ -13,6 +14,9 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
+
+app.use("/auth", authRoute)
+
 
 app.listen(PORT, async () => {
     db.sequelize.sync({ alter: true })
