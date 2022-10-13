@@ -3,7 +3,10 @@ const db = require("../models")
 const bcrypt = require("bcrypt")
 const { signToken } = require("../lib/jwt")
 const { validationResult } = require("express-validator")
-const { validateVerificationToken, createVerificationToken } = require("../lib/verification")
+const {
+    validateVerificationToken,
+    createVerificationToken,
+} = require("../lib/verification")
 const user = require("../models/user")
 const fs = require("fs")
 const handlebars = require("handlebars")
@@ -19,7 +22,7 @@ const authController = {
             if (!errors.isEmpty()) {
                 return res.status(400).json({
                     errors: errors.array(),
-                    message: "Invalid fields"
+                    message: "Invalid fields",
                 })
             }
 
@@ -51,23 +54,25 @@ const authController = {
             })
 
             const verification_token = createVerificationToken({
-                id: newUser.id
+                id: newUser.id,
             })
-            const verificationLink =
-                `http://localhost:2000/auth/verification?verification_token=${verification_token}`
+            const verificationLink = `http://localhost:2000/auth/verification?verification_token=${verification_token}`
 
-            const rawHTML = fs.readFileSync("templates/register_user.html", "utf-8")
+            const rawHTML = fs.readFileSync(
+                "templates/register_user.html",
+                "utf-8"
+            )
             const compiledHTML = handlebars.compile(rawHTML)
             const htmlResult = compiledHTML({
                 username,
-                verificationLink
+                verificationLink,
             })
 
             await emailer({
                 to: email,
                 html: htmlResult,
                 subject: "Verify your account",
-                text: "please verify your account"
+                text: "please verify your account",
             })
 
             return res.status(201).json({
@@ -96,17 +101,18 @@ const authController = {
 
             if (!findUserByUsernameOrEmail) {
                 return res.status(400).json({
-                    message: "User or email not found"
+                    message: "User or email not found",
                 })
             }
 
             const passwordValid = bcrypt.compareSync(
-                password, findUserByUsernameOrEmail.password
+                password,
+                findUserByUsernameOrEmail.password
             )
 
             if (!passwordValid) {
                 return res.status(400).json({
-                    message: "password invalid"
+                    message: "password invalid",
                 })
             }
 
@@ -121,7 +127,6 @@ const authController = {
                 data: findUserByUsernameOrEmail,
                 token: token,
             })
-
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -141,6 +146,21 @@ const authController = {
                 message: "Renewed user token",
                 data: findUserById,
                 token: renewedToken,
+            })
+
+            return res.status(201).json({
+                message: "Login user",
+                data: findUserByUsernameOrEmail,
+                token: token,
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Server error",
+            })
+        }
+    },
+
     verifyUser: async (req, res) => {
         try {
             const { verification_token } = req.query
@@ -149,7 +169,7 @@ const authController = {
 
             if (!validToken) {
                 return res.status(401).json({
-                    message: "Token invalid"
+                    message: "Token invalid",
                 })
             }
 
@@ -157,8 +177,8 @@ const authController = {
                 { is_verified: true },
                 {
                     where: {
-                        id: validToken.id
-                    }
+                        id: validToken.id,
+                    },
                 }
             )
 
@@ -180,22 +200,25 @@ const authController = {
 
             const verificationLink = `http://localhost:2000/auth/verification?verification_token=${verificationToken}`
 
-            const rawHTML = fs.readFileSync("templates/register_user.html", "utf-8")
+            const rawHTML = fs.readFileSync(
+                "templates/register_user.html",
+                "utf-8"
+            )
             const compiledHTML = handlebars.compile(rawHTML)
             const htmlResult = compiledHTML({
                 username: findUserById.username,
-                verificationLink
+                verificationLink,
             })
 
             await emailer({
                 to: findUserById.email,
                 html: htmlResult,
                 subject: "Verify your account",
-                text: "please verify your account"
+                text: "please verify your account",
             })
 
             return res.status(200).json({
-                message: "Verification email sent"
+                message: "Verification email sent",
             })
         } catch (err) {
             console.log(err)
@@ -203,11 +226,9 @@ const authController = {
                 message: "Server error",
             })
         }
-    }
+    },
 }
 
 module.exports = {
-    authController
+    authController,
 }
-
-
