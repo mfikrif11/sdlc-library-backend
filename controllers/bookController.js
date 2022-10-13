@@ -6,7 +6,7 @@ const Book = db.Book
 const bookController = {
     getAllBooks: async (req, res) => {
         try {
-            const { title, author, genre, _sortBy = "id", _sortDir = "ASC", _limit = 10, _page = 1 } = req.query
+            const { title, author, genre, _sortBy = "id", _sortDir = "ASC", _limit = 12, _page = 1 } = req.query
 
             if (_sortBy === "title" || _sortBy === "author" || _sortBy === "publish_date" || _sortBy === "genre" || author || genre || title) {
                 const getAll = await Book.findAndCountAll({
