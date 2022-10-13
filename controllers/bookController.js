@@ -8,28 +8,14 @@ const bookController = {
         try {
             const { title, author, genre, _sortBy = "id", _sortDir = "ASC", _limit = 10, _page = 1 } = req.query
 
-            if (_sortBy === "title" || _sortBy === "author" || _sortBy === "publish_date" || _sortBy === "genre") {
+            if (_sortBy === "title" || _sortBy === "author" || _sortBy === "publish_date" || _sortBy === "genre" || author || genre || title) {
                 const getAll = await Book.findAndCountAll({
                     limit: Number(_limit),
                     offset: (_page - 1) * _limit,
                     attributes: { exclude: ['description'] },
                     order: [
                         [_sortBy, _sortDir]
-                    ]
-                })
-
-                return res.status(200).json({
-                    message: `Get all books sort by ${_sortBy}`,
-                    data: getAll.rows,
-                    dataCount: getAll.count
-                })
-            }
-
-            let filterBy = req.params
-
-            if (filterBy = author || genre || title) {
-                const getAll = await Book.findAll({
-                    attributes: { exclude: ['description'] },
+                    ],
                     where: {
                         [Op.or]: [
                             {
@@ -52,8 +38,9 @@ const bookController = {
                 })
 
                 return res.status(200).json({
-                    message: `book list filtered by ${filterBy}`,
-                    data: getAll,
+                    message: `Get all books`,
+                    data: getAll.rows,
+                    dataCount: getAll.count
                 })
             }
 
@@ -64,7 +51,7 @@ const bookController = {
             })
 
             return res.status(200).json({
-                message: "Get all posts",
+                message: "Get all books",
                 data: getAllBooks.rows,
                 dataCount: getAllBooks.count
             })
