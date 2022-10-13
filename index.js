@@ -6,6 +6,8 @@ const fs = require("fs")
 const handlebars = require("handlebars")
 const authRoute = require("./routes/authRoute")
 const bookRoute = require("./routes/bookRoute")
+const cartRoute = require("./routes/cartRoute")
+const { verifyToken } = require('./middlewares/authMiddleware')
 
 
 dotenv.config()
@@ -20,6 +22,7 @@ app.use(express.json())
 
 app.use("/auth", authRoute)
 app.use("/books", bookRoute)
+app.use("/carts", verifyToken, cartRoute)
 
 app.listen(PORT, async () => {
     db.sequelize.sync({ alter: true })
