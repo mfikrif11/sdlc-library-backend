@@ -6,10 +6,12 @@ const Book = db.Book
 const bookController = {
     getAllBooks: async (req, res) => {
         try {
-            const { _sortBy, title, author, genre, _sortDir = "ASC" } = req.query
+            const { title, author, genre, _sortBy = "id", _sortDir = "ASC", _limit = 10, _page = 1 } = req.query
 
             if (_sortBy === "title" || _sortBy === "author" || _sortBy === "publish_date" || _sortBy === "genre") {
-                const getAll = await Book.findAll({
+                const getAll = await Book.findAndCountAll({
+                    limit: Number(_limit),
+                    offset: (_page - 1) * _limit,
                     attributes: { exclude: ['description'] },
                     order: [
                         [_sortBy, _sortDir]
@@ -18,63 +20,47 @@ const bookController = {
 
                 return res.status(200).json({
                     message: `Get all books sort by ${_sortBy}`,
-                    data: getAll,
+                    data: getAll.rows,
+                    dataCount: getAll.count
                 })
             }
 
-            if (title) {
-                const getAll = await Book.findAll({
-                    attributes: { exclude: ['description', 'genre'] },
-                    where: {
-                        title: {
-                            [Op.like]: `%${title}%`
-                        }
-                    }
-                })
+            let filterBy = req.params
 
-                return res.status(200).json({
-                    message: "Get books by title",
-                    data: getAll,
-                })
-            }
-
-            if (author) {
-                const getAll = await Book.findAll({
-                    attributes: { exclude: ['description', 'genre'] },
-                    where: {
-                        author: {
-                            [Op.like]: `%${author}%`
-                        }
-                    }
-                })
-
-                return res.status(200).json({
-                    message: "Get books by Author",
-                    data: getAll,
-                })
-            }
-
-            if (genre) {
+            if (filterBy = author || genre || title) {
                 const getAll = await Book.findAll({
                     attributes: { exclude: ['description'] },
                     where: {
-                        genre: {
-                            [Op.like]: `%${genre}%`
-                        }
+                        [Op.or]: [
+                            {
+                                author: {
+                                    [Op.like]: `%${author}%`
+                                }
+                            },
+                            {
+                                title: {
+                                    [Op.like]: `%${title}%`
+                                }
+                            },
+                            {
+                                genre: {
+                                    [Op.like]: `%${genre}%`
+                                }
+                            }
+                        ]
                     }
                 })
 
                 return res.status(200).json({
-                    message: "Get books by Author",
+                    message: `book list filtered by ${filterBy}`,
                     data: getAll,
                 })
             }
-
-            const { _limit = 10, _page = 1 } = req.query
 
             const getAllBooks = await Book.findAndCountAll({
                 limit: Number(_limit),
                 offset: (_page - 1) * _limit,
+                attributes: { exclude: ['description'] },
             })
 
             return res.status(200).json({
