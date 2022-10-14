@@ -25,6 +25,17 @@ const authController = {
 
             const { NIM, username, email, password } = req.body
 
+            const findUserByNIM = await User.findOne({
+                where: {
+                    NIM: NIM,
+                },
+            })
+
+            if (findUserByNIM) {
+                return res.status(400).json({
+                    message: "NIM already registered"
+                })
+            }
             const findUserByUsernameOrEmail = await User.findOne({
                 where: {
                     [Op.or]: {

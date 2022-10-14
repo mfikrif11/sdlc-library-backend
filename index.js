@@ -7,6 +7,7 @@ const handlebars = require("handlebars")
 const authRoute = require("./routes/authRoute")
 const bookRoute = require("./routes/bookRoute")
 const cartRoute = require("./routes/cartRoute")
+const transactionRoute = require("./routes/transactionRoute")
 const { verifyToken } = require('./middlewares/authMiddleware')
 
 
@@ -23,6 +24,7 @@ app.use(express.json())
 app.use("/auth", authRoute)
 app.use("/books", bookRoute)
 app.use("/carts", verifyToken, cartRoute)
+app.use("/transactions", verifyToken, transactionRoute)
 
 app.listen(PORT, async () => {
     db.sequelize.sync({ alter: true })

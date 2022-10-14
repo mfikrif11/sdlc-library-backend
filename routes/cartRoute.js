@@ -1,6 +1,6 @@
 const express = require('express')
 const cartController = require('../controllers/cartController')
-const { verifyToken } = require('../middlewares/authMiddleware')
+
 
 
 const router = express.Router()
@@ -8,5 +8,6 @@ const router = express.Router()
 router.post("/", cartController.addToCart)
 router.get("/", cartController.showCartItems)
 router.delete("/:id", cartController.deleteBookFromCart)
+router.post("/checkOut", cartController.cartCheckOut)
 
 module.exports = router
