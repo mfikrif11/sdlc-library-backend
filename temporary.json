@@ -1,0 +1,16 @@
+{
+    "items": [
+        {
+            "CartId": 1,
+            "quantity": 1
+        },
+        {
+            "CartId": 2,
+            "quantity": 1
+        },
+        {
+            "CartId": 4,
+            "quantity": 1
+        }
+    ]
+}

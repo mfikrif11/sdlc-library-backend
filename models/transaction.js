@@ -18,22 +18,24 @@ module.exports = (sequelize, DataTypes) => {
         {
             total_penalty: {
                 type: DataTypes.INTEGER,
+                defaultValue: 0,
             },
             borrow_date: {
                 type: DataTypes.DATE,
-                allowNull: false,
+                // allowNull: false,
             },
             return_date: {
                 type: DataTypes.DATE,
-                allowNull: false,
+                // allowNull: false,
             },
             due_date: {
                 type: DataTypes.DATE,
-                allowNull: false,
+                // allowNull: false,
             },
             total_quantity: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                // allowNull: false,
+                defaultValue: 0,
             },
             is_penalty: {
                 defaultValue: false,
