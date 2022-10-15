@@ -8,6 +8,8 @@ const user = require("../models/user")
 const fs = require("fs")
 const handlebars = require("handlebars")
 const emailer = require("../lib/emailer")
+const secheduleEmail = require("../lib/email-service")
+
 
 const User = db.User
 

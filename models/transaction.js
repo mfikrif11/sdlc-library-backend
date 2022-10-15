@@ -11,36 +11,41 @@ module.exports = (sequelize, DataTypes) => {
             // define association here
             Transaction.belongsTo(models.User)
             Transaction.hasMany(models.TransactionItem)
-            Transaction.belongsTo(models.Cart)
         }
     }
     Transaction.init(
         {
-            total_penalty: {
+            total_quantity: {
                 type: DataTypes.INTEGER,
+                allowNull: false,
                 defaultValue: 0,
             },
             borrow_date: {
                 type: DataTypes.DATE,
-                // allowNull: false,
+                allowNull: false,
+            },
+            due_date: {
+                type: DataTypes.DATE,
+                allowNull: false,
             },
             return_date: {
                 type: DataTypes.DATE,
                 // allowNull: false,
             },
-            due_date: {
-                type: DataTypes.DATE,
-                // allowNull: false,
-            },
-            total_quantity: {
-                type: DataTypes.INTEGER,
-                // allowNull: false,
-                defaultValue: 0,
-            },
             is_penalty: {
                 defaultValue: false,
                 type: DataTypes.BOOLEAN,
             },
+            total_penalty: {
+                type: DataTypes.INTEGER,
+                defaultValue: 0,
+            },
+            loan_status: {
+                defaultValue: "Waiting for return",
+                type: DataTypes.STRING,
+                allowNull: false,
+
+            }
         },
         {
             sequelize,

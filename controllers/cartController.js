@@ -1,5 +1,8 @@
+
 const db = require("../models")
 const Cart = db.Cart
+const cron = require('node-cron');
+const emailer = require("../lib/emailer");
 
 const cartController = {
     addToCart: async (req, res) => {
@@ -35,6 +38,28 @@ const cartController = {
 
             return res.status(200).json({
                 message: "showBookAtCart",
+                data: seeAllCartItems
+            })
+
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Server error"
+            })
+        }
+    },
+    showMyCartItems: async (req, res) => {
+        try {
+            const { id } = req.params
+            const seeAllCartItems = await Cart.findAll({
+                include: [{ model: db.Book }],
+                where: {
+                    Userid: req.user.id
+                }
+            })
+
+            return res.status(200).json({
+                message: "showMyItemCart",
                 data: seeAllCartItems
             })
 
@@ -92,16 +117,20 @@ const cartController = {
             let dd = today.getDate()
             let mm = today.getMonth() + 1
             let yyyy = today.getFullYear();
+            let hr = today.getHours()
+            let mn = today.getMinutes()
+            let sc = today.getSeconds()
 
-            const borrow_date = yyyy + '-' + mm + '-' + dd;
+            const borrow_date = yyyy + '-' + mm + '-' + dd + ' ' + (hr - 5) + ':' + mn + ':' + sc;
 
-            const due_date = yyyy + '-' + mm + '-' + (dd + 5);
+            const due_date = yyyy + '-' + mm + '-' + (dd + 5) + ' ' + (hr - 5) + ':' + mn + ':' + sc;
 
             let total = 0
+
             for (let i = 0; i < transactionItemQuantity.length; i++) {
                 total += Number(transactionItemQuantity[i])
             }
-            console.log(total)
+            // console.log(total)
 
             const total_quantity = total
 
@@ -121,8 +150,51 @@ const cartController = {
                 })
             )
 
-            return res.status(201).json({
-                message: "Cart checked out",
+            const findTransactionById = await db.Transaction.findOne({
+                where: {
+                    UserId: req.user.id
+                }
+            })
+
+            // console.log(findTransactionById.id)
+            // console.log(findTransactionById.is_penalty)
+
+            // return res.status(201).json({
+            //     message: "Cart checked out",
+            // })
+            const findUserById = await db.User.findByPk(req.user.id)
+            const is_penalty = "true"
+            const penalty_fee = 20000
+            const total_penalty = penalty_fee * total_quantity
+
+            cron.schedule('0 */1 * * * *', () => {
+                if (createTransaction.loan_status === "Waiting for return") {
+
+                    db.Transaction.update(
+                        {
+                            is_penalty,
+                            total_penalty,
+                        },
+                        {
+                            where: {
+                                id: createTransaction.id
+                            }
+                        }
+                    )
+
+                    emailer({
+                        to: findUserById.email,
+                        html: "<h1>You will get penalty charge due to exceeding the loan maturity date</h1>",
+                        subject: "Loan Penalty",
+                        text: "warning: please return the book you borrowed immediately"
+                    })
+                }
+            })
+
+            // console.log(createTransaction.loan_status)
+
+            return res.status(200).json({
+                message: "cart checked out"
             })
         } catch (err) {
             console.log(err)
