@@ -65,12 +65,16 @@ const transactionController = {
 
             const is_penalty = "false"
 
+            const total_penalty = 0
+
             if (loan_status === "Loan returned") {
                 await Transaction.update(
                     {
                         loan_status,
                         return_date,
-                        is_penalty
+                        is_penalty,
+                        total_penalty
+
                     },
                     {
                         where: {

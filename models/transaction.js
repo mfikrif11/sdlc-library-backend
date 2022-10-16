@@ -30,7 +30,8 @@ module.exports = (sequelize, DataTypes) => {
             },
             return_date: {
                 type: DataTypes.DATE,
-                // allowNull: false,
+                // allowNull :false,
+                // defaultValue: '0000-00-00 00:00:00'
             },
             is_penalty: {
                 defaultValue: false,
