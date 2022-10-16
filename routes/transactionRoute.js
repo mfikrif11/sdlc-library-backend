@@ -3,6 +3,8 @@ const transactionController = require("../controllers/transactionController")
 
 const router = express.Router()
 
-router.post('/', transactionController.createNewLoanTransaction)
+router.get('/', transactionController.showAllTransaction)
+router.get('/me', transactionController.showMyTransactionList)
+router.patch('/returnStatus/:id', transactionController.returnTransactionLoan)
 
-module.exports = router
+module.exports = router 

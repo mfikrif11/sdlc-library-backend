@@ -1,41 +1,99 @@
 const db = require("../models")
-const moment = require("moment")
-const { finished } = require("nodemailer/lib/xoauth2")
-
-const { Transaction, TransactionItem } = db
+const { Transaction } = db
+// const moment = require("moment")
+// const emailService = require('../lib/email-service')
 
 const transactionController = {
-    createNewLoanTransaction: async (req, res) => {
+    showAllTransaction: async (req, res) => {
         try {
+            const seeAllTransactionList = await Transaction.findAll()
+
+            return res.status(200).json({
+                message: "Show All Transaction",
+                data: seeAllTransactionList
+            })
+
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Server error"
+            })
+        }
+    },
+    showMyTransactionList: async (req, res) => {
+        try {
+            const seeMyTransactionList = await Transaction.findAll({
+                where: {
+                    UserId: req.user.id
+                }
+            })
+
+            return res.status(200).json({
+                message: "Show All Transaction",
+                data: seeMyTransactionList
+            })
+
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Server error"
+            })
+        }
+    },
+    returnTransactionLoan: async (req, res) => {
+        try {
+            const { loan_status } = req.body
+            const { id } = req.params
+
+            const seeMyTransaction = await Transaction.findByPk(id)
+
+            if (loan_status !== "Loan returned") {
+                return res.status(400).json({
+                    message: "invalid status for transaction",
+                })
+            }
+
             let today = new Date();
             let dd = today.getDate()
             let mm = today.getMonth() + 1
             let yyyy = today.getFullYear();
+            let hr = today.getHours()
+            let mn = today.getMinutes()
+            let sc = today.getSeconds()
 
-            const borrow_date = yyyy + '-' + mm + '-' + dd;
+            const return_date = yyyy + '-' + mm + '-' + dd + ' ' + (hr - 5) + ':' + mn + ':' + sc;
 
-            const due_date = yyyy + '-' + mm + '-' + (dd + 5);
+            const is_penalty = "false"
 
-            const createTransaction = await Transaction.create({
-                UserId: req.user.id,
-                borrow_date: borrow_date,
-                due_date: due_date,
-            })
+            const total_penalty = 0
 
-            await TransactionItem.create({
-                Cart_Id: Cart_Id
-            })
+            if (loan_status === "Loan returned") {
+                await Transaction.update(
+                    {
+                        loan_status,
+                        return_date,
+                        is_penalty,
+                        total_penalty
 
-            return res.status(201).json({
-                message: "Transaction created"
-            })
+                    },
+                    {
+                        where: {
+                            id: id
+                        }
+                    }
+                )
+                return res.status(200).json({
+                    message: "Loan returned",
+                })
+            }
+
         } catch (err) {
             console.log(err)
             return res.status(500).json({
-                message: "Server error",
+                message: "Server error"
             })
         }
-    }
+    },
 }
 
 module.exports = transactionController

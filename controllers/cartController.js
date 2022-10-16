@@ -1,5 +1,10 @@
 const db = require("../models")
 const Cart = db.Cart
+const cron = require('node-cron');
+const emailer = require("../lib/emailer");
+const fs = require("fs")
+const handlebars = require("handlebars")
+const moment = require("moment")
 
 const cartController = {
     addToCart: async (req, res) => {
@@ -45,6 +50,30 @@ const cartController = {
             })
         }
     },
+    showMyCartItems: async (req, res) => {
+        try {
+            const { id } = req.params
+            const seeAllCartItems = await Cart.findAll({
+                include: [{ model: db.Book }],
+                where: {
+                    Userid: req.user.id
+                }
+            })
+
+            console.log(seeAllCartItems)
+
+            return res.status(200).json({
+                message: "showMyItemCart",
+                data: seeAllCartItems
+            })
+
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Server error"
+            })
+        }
+    },
     deleteBookFromCart: async (req, res) => {
         try {
             const { id } = req.params
@@ -52,7 +81,7 @@ const cartController = {
             await Cart.destroy({
                 where: {
                     id: id
-                }
+                },
             })
             return res.status(200).json({
                 message: "Deleted item from cart",
@@ -75,15 +104,17 @@ const cartController = {
             const findCarts = await Cart.findAll({
                 where: {
                     id: transactionItemIds
-                }
+                },
+                include: [{ model: db.Book }],
             })
-            // console.log(transactionItemQuantity)
+
 
             const transactionItems = findCarts.map((cart) => {
                 const qty = items.find((item) => item.CartId === cart.id).quantity
 
                 return {
                     CartId: cart.id,
+                    BookId: cart.BookId,
                     quantity: qty,
                 }
             })
@@ -91,17 +122,20 @@ const cartController = {
             let today = new Date();
             let dd = today.getDate()
             let mm = today.getMonth() + 1
-            let yyyy = today.getFullYear();
+            let yyyy = today.getFullYear()
+            let hr = today.getHours()
+            let mn = today.getMinutes()
+            let sc = today.getSeconds()
 
-            const borrow_date = yyyy + '-' + mm + '-' + dd;
+            const borrow_date = yyyy + '-' + mm + '-' + dd + ' ' + (hr) + ':' + mn + ':' + sc;
 
-            const due_date = yyyy + '-' + mm + '-' + (dd + 5);
+            const due_date = yyyy + '-' + mm + '-' + (dd + 5) + ' ' + (hr) + ':' + mn + ':' + sc;
 
             let total = 0
+
             for (let i = 0; i < transactionItemQuantity.length; i++) {
                 total += Number(transactionItemQuantity[i])
             }
-            console.log(total)
 
             const total_quantity = total
 
@@ -112,7 +146,7 @@ const cartController = {
                 total_quantity: total_quantity
             })
 
-            await db.TransactionItem.bulkCreate(
+            const createTransactionItems = await db.TransactionItem.bulkCreate(
                 transactionItems.map((item) => {
                     return {
                         ...item,
@@ -121,8 +155,73 @@ const cartController = {
                 })
             )
 
-            return res.status(201).json({
-                message: "Cart checked out",
+            const findTransactionById = await db.Transaction.findOne({
+                where: {
+                    UserId: req.user.id
+                }
+            })
+
+            const findUserById = await db.User.findByPk(req.user.id)
+            const is_penalty = "true"
+            const penalty_fee = 20000
+            const total_penalty = penalty_fee * total_quantity
+
+            const findTransactionItemsById = await db.TransactionItem.findAll(
+                {
+                    where: {
+                        TransactionId: createTransaction.id
+                    },
+                    include: [
+                        { model: db.Book }
+                    ]
+                }
+            )
+
+            const transactionItemsList = await findTransactionItemsById.map((item) => {
+                return {
+                    title: item.Book.title,
+                    quantity: item.quantity,
+                    penalty_fee: penalty_fee.toLocaleString(),
+                }
+            })
+            const invoiceDate = moment().format("DD MMMM YYYY")
+
+            cron.schedule('0 */1 * * * *', () => {
+                if (createTransaction.loan_status === "Waiting for return") {
+
+                    db.Transaction.update(
+                        {
+                            is_penalty,
+                            total_penalty,
+                        },
+                        {
+                            where: {
+                                id: createTransaction.id
+                            }
+                        }
+                    )
+
+                    const rawHTML = fs.readFileSync("templates/invoice.html", "utf-8")
+                    const compiledHTML = handlebars.compile(rawHTML)
+                    const resultHTML = compiledHTML(
+                        {
+                            invoiceDate: moment().format("DD MMMM YYYY"),
+                            grandTotal: total_penalty.toLocaleString(),
+                            transactionItemsList
+                        }
+                    )
+
+                    emailer({
+                        to: findUserById.email,
+                        html: resultHTML,
+                        subject: "Loan Penalty",
+                        text: "Warning: please return the book you borrowed immediately, you will get penalty charge due to exceeding the loan maturity date"
+                    })
+                }
+            })
+
+            return res.status(200).json({
+                message: "cart checked out"
             })
         } catch (err) {
             console.log(err)
@@ -134,4 +233,3 @@ const cartController = {
 }
 
 module.exports = cartController
-

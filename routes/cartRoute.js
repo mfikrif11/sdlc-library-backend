@@ -5,6 +5,7 @@ const router = express.Router()
 
 router.post("/", cartController.addToCart)
 router.get("/", cartController.showCartItems)
+router.get("/me", cartController.showMyCartItems)
 router.delete("/:id", cartController.deleteBookFromCart)
 router.post("/checkOut", cartController.cartCheckOut)
 
