@@ -186,7 +186,7 @@ const cartController = {
             })
             const invoiceDate = moment().format("DD MMMM YYYY")
 
-            cron.schedule('0 */1 * * * *', () => {
+            cron.schedule('0 */5 * * * *', () => {
                 if (createTransaction.loan_status === "Waiting for return") {
 
                     db.Transaction.update(
