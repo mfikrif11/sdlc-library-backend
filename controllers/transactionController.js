@@ -25,7 +25,13 @@ const transactionController = {
             const seeMyTransactionList = await Transaction.findAll({
                 where: {
                     UserId: req.user.id
-                }
+                },
+                include: [
+                    {
+                        model: db.TransactionItem,
+                        include: [{ model: db.Book }]
+                    }
+                ]
             })
 
             return res.status(200).json({
