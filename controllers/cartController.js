@@ -112,7 +112,6 @@ const cartController = {
                 include: [{ model: db.Book }],
             })
 
-
             const transactionItems = findCarts.map((cart) => {
                 const qty = items.find((item) => item.CartId === cart.id).quantity
 
@@ -192,7 +191,7 @@ const cartController = {
                     penalty_fee: penalty_fee.toLocaleString(),
                 }
             })
-            const invoiceDate = moment().format("DD MMMM YYYY")
+            // const invoiceDate = moment().format("DD MMMM YYYY")
 
             cron.schedule('0 */5 * * * *', () => {
                 if (createTransaction.loan_status === "Waiting for return") {
@@ -227,40 +226,6 @@ const cartController = {
                     })
                 }
             })
-
-            // cron.schedule(moment(), () => {
-            //     if (createTransaction.loan_status === "Waiting for return") {
-
-            //         db.Transaction.update(
-            //             {
-            //                 is_penalty,
-            //                 total_penalty,
-            //             },
-            //             {
-            //                 where: {
-            //                     id: createTransaction.id
-            //                 }
-            //             }
-            //         )
-
-            //         const rawHTML = fs.readFileSync("templates/invoice.html", "utf-8")
-            //         const compiledHTML = handlebars.compile(rawHTML)
-            //         const resultHTML = compiledHTML(
-            //             {
-            //                 invoiceDate: moment().format("DD MMMM YYYY"),
-            //                 grandTotal: total_penalty.toLocaleString(),
-            //                 transactionItemsList
-            //             }
-            //         )
-
-            //         emailer({
-            //             to: findUserById.email,
-            //             html: resultHTML,
-            //             subject: "Loan Penalty",
-            //             text: "Warning: please return the book you borrowed immediately, you will get penalty charge due to exceeding the loan maturity date"
-            //         })
-            //     }
-            // })
 
             await db.Cart.destroy({
                 where: {

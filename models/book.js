@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             // define association here
             // Book.hasMany(models.TransactionItem)
+            Book.belongsTo(models.Category)
         }
     }
     Book.init(
@@ -38,6 +39,9 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
+            stock_quantity: {
+                type: DataTypes.INTEGER,
+            }
         },
         {
             sequelize,
