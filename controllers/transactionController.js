@@ -26,11 +26,11 @@ const transactionController = {
                 where: {
                     UserId: req.user.id
                 },
+                order: [
+                    ["borrow_date", "DESC"]
+                ],
                 include: [
-                    {
-                        model: db.TransactionItem,
-                        include: [{ model: db.Book }]
-                    }
+                    { model: db.TransactionItem, include: [{ model: db.Book }] }
                 ]
             })
 
