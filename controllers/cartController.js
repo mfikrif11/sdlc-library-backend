@@ -27,9 +27,13 @@ const cartController = {
             BookId: BookId
         })
 
+        const findCart = await Cart.findByPk(addBookToCart.id, {
+            include: db.Book,
+        });
+
         return res.status(201).json({
             message: "Book added to cart",
-            data: addBookToCart
+            data: findCart
         })
     },
     showCartItems: async (req, res) => {
@@ -258,6 +262,12 @@ const cartController = {
             //     }
             // })
 
+            await db.Cart.destroy({
+                where: {
+                    UserId: req.user.id,
+                },
+            });
+
             return res.status(200).json({
                 message: "cart checked out"
             })
@@ -271,3 +281,4 @@ const cartController = {
 }
 
 module.exports = cartController
+
