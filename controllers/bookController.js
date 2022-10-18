@@ -29,6 +29,7 @@ const bookController = {
                 const getAll = await Book.findAndCountAll({
                     limit: Number(_limit),
                     offset: (_page - 1) * _limit,
+                    include: [{ model: db.Category }],
                     attributes: { exclude: ["description"] },
                     order: [[_sortBy, _sortDir]],
                     where: {
@@ -61,6 +62,7 @@ const bookController = {
             const getAllBooks = await Book.findAndCountAll({
                 limit: Number(_limit),
                 offset: (_page - 1) * _limit,
+                include: [{ model: db.Category }],
                 attributes: { exclude: ["description"] },
             })
 
@@ -80,7 +82,9 @@ const bookController = {
         try {
             const { id } = req.params
 
-            const findBookById = await Book.findByPk(id)
+            const findBookById = await Book.findByPk(id, {
+                include: [{ model: db.Category }],
+            })
 
             return res.status(200).json({
                 message: "Get book details",

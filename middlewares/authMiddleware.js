@@ -1,4 +1,5 @@
 const { validateToken } = require("../lib/jwt")
+const db = require("../models")
 
 const verifyToken = (req, res, next) => {
     let token = req.headers.authorization
@@ -29,5 +30,5 @@ const verifyToken = (req, res, next) => {
 }
 
 module.exports = {
-    verifyToken
+    verifyToken,
 }

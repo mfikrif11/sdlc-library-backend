@@ -8,6 +8,7 @@ const authRoute = require("./routes/authRoute")
 const bookRoute = require("./routes/bookRoute")
 const cartRoute = require("./routes/cartRoute")
 const transactionRoute = require("./routes/transactionRoute")
+const adminRoute = require("./routes/adminRoute")
 const { verifyToken } = require('./middlewares/authMiddleware')
 
 
@@ -25,6 +26,7 @@ app.use("/auth", authRoute)
 app.use("/books", bookRoute)
 app.use("/carts", verifyToken, cartRoute)
 app.use("/transactions", verifyToken, transactionRoute)
+app.use("/admin", adminRoute)
 
 app.listen(PORT, async () => {
     db.sequelize.sync({ alter: true })
