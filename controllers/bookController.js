@@ -30,7 +30,6 @@ const bookController = {
                     limit: Number(_limit),
                     offset: (_page - 1) * _limit,
                     include: [{ model: db.Category }],
-                    attributes: { exclude: ["description"] },
                     order: [[_sortBy, _sortDir]],
                     where: {
                         [Op.and]: [
@@ -63,7 +62,6 @@ const bookController = {
                 limit: Number(_limit),
                 offset: (_page - 1) * _limit,
                 include: [{ model: db.Category }],
-                attributes: { exclude: ["description"] },
             })
 
             return res.status(200).json({
