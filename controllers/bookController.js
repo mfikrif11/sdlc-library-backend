@@ -16,8 +16,6 @@ const bookController = {
         _page = 1,
       } = req.query
 
-      console.log(req.query)
-
       if (
         _sortBy === "title" ||
         _sortBy === "author" ||
