@@ -77,6 +77,7 @@ const bookController = {
           },
         })
 
+
         return res.status(200).json({
           message: `Get all books`,
           data: getAll.rows,
