@@ -4,102 +4,118 @@ const { Transaction } = db
 // const emailService = require('../lib/email-service')
 
 const transactionController = {
-    showAllTransaction: async (req, res) => {
-        try {
-            const seeAllTransactionList = await Transaction.findAll()
+  showAllTransaction: async (req, res) => {
+    try {
+      const seeAllTransactionList = await Transaction.findAll()
 
-            return res.status(200).json({
-                message: "Show All Transaction",
-                data: seeAllTransactionList
-            })
+      return res.status(200).json({
+        message: "Show All Transaction",
+        data: seeAllTransactionList,
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  showMyTransactionList: async (req, res) => {
+    try {
+      const seeMyTransactionList = await Transaction.findAll({
+        where: {
+          UserId: req.user.id,
+        },
+        order: [["borrow_date", "DESC"]],
+        include: [{ model: db.TransactionItem, include: [{ model: db.Book }] }],
+      })
 
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    showMyTransactionList: async (req, res) => {
-        try {
-            const seeMyTransactionList = await Transaction.findAll({
-                where: {
-                    UserId: req.user.id
-                },
-                order: [
-                    ["borrow_date", "DESC"]
-                ],
-                include: [
-                    { model: db.TransactionItem, include: [{ model: db.Book }] }
-                ]
-            })
+      return res.status(200).json({
+        message: "Show All Transaction",
+        data: seeMyTransactionList,
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  returnTransactionLoan: async (req, res) => {
+    try {
+      const { loan_status } = req.body
+      const { id } = req.params
 
-            return res.status(200).json({
-                message: "Show All Transaction",
-                data: seeMyTransactionList
-            })
+      const seeMyTransaction = await Transaction.findByPk(id)
 
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    returnTransactionLoan: async (req, res) => {
-        try {
-            const { loan_status } = req.body
-            const { id } = req.params
+      if (loan_status !== "Loan returned") {
+        return res.status(400).json({
+          message: "invalid status for transaction",
+        })
+      }
 
-            const seeMyTransaction = await Transaction.findByPk(id)
+      let today = new Date()
+      let dd = today.getDate()
+      let mm = today.getMonth() + 1
+      let yyyy = today.getFullYear()
+      let hr = today.getHours()
+      let mn = today.getMinutes()
+      let sc = today.getSeconds()
 
-            if (loan_status !== "Loan returned") {
-                return res.status(400).json({
-                    message: "invalid status for transaction",
-                })
-            }
+      const return_date =
+        yyyy + "-" + mm + "-" + dd + " " + (hr - 5) + ":" + mn + ":" + sc
 
-            let today = new Date();
-            let dd = today.getDate()
-            let mm = today.getMonth() + 1
-            let yyyy = today.getFullYear();
-            let hr = today.getHours()
-            let mn = today.getMinutes()
-            let sc = today.getSeconds()
+      const is_penalty = "false"
 
-            const return_date = yyyy + '-' + mm + '-' + dd + ' ' + (hr - 5) + ':' + mn + ':' + sc;
+      const total_penalty = 0
 
-            const is_penalty = "false"
+      if (loan_status === "Loan returned") {
+        await Transaction.update(
+          {
+            loan_status,
+            return_date,
+            is_penalty,
+            total_penalty,
+          },
+          {
+            where: {
+              id: id,
+            },
+          }
+        )
 
-            const total_penalty = 0
+        const findBook = await db.TransactionItem.findAll({
+          where: {
+            TransactionId: id,
+          },
+        })
 
-            if (loan_status === "Loan returned") {
-                await Transaction.update(
-                    {
-                        loan_status,
-                        return_date,
-                        is_penalty,
-                        total_penalty
+        const findBookid = findBook.map((val) => {
+          return val.BookId
+        })
 
-                    },
-                    {
-                        where: {
-                            id: id
-                        }
-                    }
-                )
-                return res.status(200).json({
-                    message: "Loan returned",
-                })
-            }
+        // console.log(findBookid)
 
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
+        console.log(findBookid)
+
+        await db.Book.increment(
+          { stock_quantity: 1 },
+          {
+            where: {
+              id: findBookid,
+            },
+          }
+        )
+        return res.status(200).json({
+          message: "Loan returned",
+        })
+      }
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
 }
 
 module.exports = transactionController

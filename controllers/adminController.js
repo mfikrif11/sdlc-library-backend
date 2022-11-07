@@ -5,272 +5,352 @@ const bcrypt = require("bcrypt")
 const { signToken } = require("../lib/jwt")
 
 const adminController = {
-    adminLogin: async (req, res) => {
-        try {
-            const { usernameOrEmail, password } = req.body
+  getAllCategories: async (req, res) => {
+    try {
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            const findUserByUsernameOrEmail = await db.User.findOne({
-                where: {
-                    [Op.or]: {
-                        username: usernameOrEmail,
-                        email: usernameOrEmail,
-                    },
-                },
-            })
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            if (!findUserByUsernameOrEmail) {
-                return res.status(400).json({
-                    message: "User or email not found"
-                })
-            }
+      const seeAllCategory = await db.Category.findAll()
 
-            // console.log(findUserByUsernameOrEmail.is_admin)
+      return res.status(200).json({
+        message: "Show All Transaction",
+        data: seeAllCategory,
+      })
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  adminLogin: async (req, res) => {
+    try {
+      const { usernameOrEmail, password } = req.body
 
-            if (!findUserByUsernameOrEmail.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      const findUserByUsernameOrEmail = await db.User.findOne({
+        where: {
+          [Op.or]: {
+            username: usernameOrEmail,
+            email: usernameOrEmail,
+          },
+        },
+      })
 
-            const passwordValid = bcrypt.compareSync(
-                password, findUserByUsernameOrEmail.password
-            )
+      if (!findUserByUsernameOrEmail) {
+        return res.status(400).json({
+          message: "User or email not found",
+        })
+      }
 
-            if (!passwordValid) {
-                return res.status(400).json({
-                    message: "password invalid"
-                })
-            }
+      // console.log(findUserByUsernameOrEmail.is_admin)
 
-            delete findUserByUsernameOrEmail.dataValues.password
+      if (!findUserByUsernameOrEmail.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            const token = signToken({
-                id: findUserByUsernameOrEmail.id,
-            })
+      const passwordValid = bcrypt.compareSync(
+        password,
+        findUserByUsernameOrEmail.password
+      )
 
-            return res.status(201).json({
-                message: "Login Admin",
-                data: findUserByUsernameOrEmail,
-                token: token,
-            })
+      if (!passwordValid) {
+        return res.status(400).json({
+          message: "password invalid",
+        })
+      }
 
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error",
-            })
-        }
-    },
-    adminCreateCategory: async (req, res) => {
-        try {
-            const { category_name } = req.body
+      delete findUserByUsernameOrEmail.dataValues.password
 
-            const findAdminById = await db.User.findByPk(req.user.id)
+      const token = signToken({
+        id: findUserByUsernameOrEmail.id,
+      })
 
-            if (!findAdminById.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      return res.status(201).json({
+        message: "Login Admin",
+        data: findUserByUsernameOrEmail,
+        token: token,
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  adminCreateCategory: async (req, res) => {
+    try {
+      const { category_name } = req.body
 
-            const findCategory = await db.Category.findOne({
-                where: {
-                    category_name: category_name
-                }
-            })
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            if (findCategory) {
-                return res.status(400).json({
-                    message: "Category name already exist"
-                })
-            }
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            const createNewCategory = await db.Category.create({
-                category_name,
-            })
+      const findCategory = await db.Category.findOne({
+        where: {
+          category_name: category_name,
+        },
+      })
 
-            return res.status(201).json({
-                message: "Create new category",
-                data: createNewCategory
-            })
+      if (findCategory) {
+        return res.status(400).json({
+          message: "Category name already exist",
+        })
+      }
 
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    adminUpdateCategory: async (req, res) => {
-        try {
-            const { id } = req.params
+      const createNewCategory = await db.Category.create({
+        category_name,
+      })
 
-            const findAdminById = await db.User.findByPk(req.user.id)
+      return res.status(201).json({
+        message: "Create new category",
+        data: createNewCategory,
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  adminUpdateCategory: async (req, res) => {
+    try {
+      const { id } = req.params
 
-            if (!findAdminById.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            await db.Category.update(req.body, {
-                where: {
-                    id: id
-                }
-            })
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            return res.status(200).json({
-                message: "Category updated",
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    adminDeleteCategory: async (req, res) => {
-        try {
-            const { id } = req.params
+      await db.Category.update(req.body, {
+        where: {
+          id: id,
+        },
+      })
 
-            const findAdminById = await db.User.findByPk(req.user.id)
+      return res.status(200).json({
+        message: "Category updated",
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  adminDeleteCategory: async (req, res) => {
+    try {
+      const { id } = req.params
 
-            if (!findAdminById.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            await db.Category.destroy({
-                where: {
-                    id: id
-                }
-            })
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            return res.status(200).json({
-                message: "Deleted Category",
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    adminBookPost: async (req, res) => {
-        try {
-            const { title, author, publish_date, description, genre, image_url, stock_quantity } = req.body
+      await db.Category.destroy({
+        where: {
+          id: id,
+        },
+      })
 
-            const findAdminById = await db.User.findByPk(req.user.id)
+      return res.status(200).json({
+        message: "Deleted Category",
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  adminBookPost: async (req, res) => {
+    try {
+      const {
+        title,
+        author,
+        publish_date,
+        description,
+        CategoryId,
+        image_url,
+        stock_quantity,
+      } = req.body
 
-            if (!findAdminById.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            const postNewBook = await db.Book.create({
-                title,
-                author,
-                publish_date,
-                description,
-                genre,
-                image_url,
-                stock_quantity,
-            })
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            return res.status(201).json({
-                message: "Post new book",
-                data: postNewBook
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    adminBookUpdate: async (req, res) => {
-        try {
-            const { id } = req.params
+      const postNewBook = await db.Book.create({
+        title,
+        author,
+        publish_date,
+        description,
+        CategoryId,
+        image_url,
+        stock_quantity,
+      })
 
-            const findAdminById = await db.User.findByPk(req.user.id)
+      return res.status(201).json({
+        message: "Post new book",
+        data: postNewBook,
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  adminBookUpdate: async (req, res) => {
+    try {
+      const { id } = req.params
 
-            if (!findAdminById.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            await db.Book.update(req.body, {
-                where: {
-                    id: id
-                }
-            })
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            return res.status(200).json({
-                message: "Book updated",
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    AdminDeleteBook: async (req, res) => {
-        try {
-            const { id } = req.params
+      await db.Book.update(req.body, {
+        where: {
+          id: id,
+        },
+      })
 
-            const findAdminById = await db.User.findByPk(req.user.id)
+      return res.status(200).json({
+        message: "Book updated",
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  AdminDeleteBook: async (req, res) => {
+    try {
+      const { id } = req.params
 
-            if (!findAdminById.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            await db.Book.destroy({
-                where: {
-                    id: id
-                }
-            })
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            return res.status(200).json({
-                message: "Deleted book",
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
-    showAllUserTransaction: async (req, res) => {
-        try {
+      await db.Book.destroy({
+        where: {
+          id: id,
+        },
+      })
 
-            const findAdminById = await db.User.findByPk(req.user.id)
+      return res.status(200).json({
+        message: "Deleted book",
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
+  showAllUserTransaction: async (req, res) => {
+    try {
+      const findAdminById = await db.User.findByPk(req.user.id)
 
-            if (!findAdminById.is_admin) {
-                return res.status(400).json({
-                    message: "User unauthorized"
-                })
-            }
+      if (!findAdminById.is_admin) {
+        return res.status(400).json({
+          message: "User unauthorized",
+        })
+      }
 
-            const seeAllTransactionList = await db.Transaction.findAll()
+      const {
+        loan_status,
+        _sortBy = "borrow_date",
+        _sortDir = "ASC",
+      } = req.query
 
-            return res.status(200).json({
-                message: "Show All Transaction",
-                data: seeAllTransactionList
-            })
+      if (loan_status === "Waiting for return") {
+        const getTransaction = await db.Transaction.findAll({
+          where: { loan_status: "Waiting for return" },
+          order: [[_sortBy, _sortDir]],
+          include: [
+            {
+              model: db.TransactionItem,
+              include: [{ model: db.Book, include: [{ model: db.Category }] }],
+            },
+            { model: db.User },
+          ],
+        })
 
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                message: "Server error"
-            })
-        }
-    },
+        return res.status(200).json({
+          message: "Find Transaction with Loan status",
+          data: getTransaction,
+        })
+      }
+      if (loan_status === "Loan returned") {
+        const getTransaction = await db.Transaction.findAll({
+          where: { loan_status: "Loan returned" },
+          order: [[_sortBy, _sortDir]],
+          include: [
+            {
+              model: db.TransactionItem,
+              include: [{ model: db.Book, include: [{ model: db.Category }] }],
+            },
+            { model: db.User },
+          ],
+        })
+
+        return res.status(200).json({
+          message: "Find Transaction with Loan status",
+          data: getTransaction,
+        })
+      }
+
+      const seeAllTransactionList = await db.Transaction.findAll({
+        order: [[_sortBy, _sortDir]],
+        include: [
+          {
+            model: db.TransactionItem,
+            include: [{ model: db.Book, include: [{ model: db.Category }] }],
+          },
+          { model: db.User },
+        ],
+      })
+
+      return res.status(200).json({
+        message: "Show All Transaction",
+        data: seeAllTransactionList,
+      })
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json({
+        message: "Server error",
+      })
+    }
+  },
 }
 
 module.exports = adminController
